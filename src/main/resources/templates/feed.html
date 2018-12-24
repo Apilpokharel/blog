@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>feeds</title>
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+
+        <!-- bootstrap cont -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    </head>
+
+    <style type="text/css">
+
+
+        .heading-box{
+            position: relative;
+        }
+
+        .loginbox{
+
+            top: 0;
+            right: 0;
+            margin-top: 5px;
+        }
+
+        .loginbox a{
+            color: black;
+
+        }
+
+
+
+
+
+    </style>
+
+
+<body>
+
+
+<div th:replace="fragments/navbar :: topnav"></div>
+
+
+<div class="container">
+
+   
+
+    <div class="row heading-box">
+
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Sort Posts By
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#" id="recent">Top 10 most recent posts</a>
+                        <a class="dropdown-item" href="#" id="liked">Top 10 liked posts</a>
+                        <a class="dropdown-item" href="#" id="visited">Top 10 most visited posts</a>
+                    </div>
+                </li>
+
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/myblogs">Manage Blog Posts</a></li>
+            </ul>
+
+
+
+        </div>
+    </nav>
+
+
+
+    <!-- container for containing top 10 posts in specified post category -->
+<br><br><br>
+    <div id="post">
+
+
+
+    </div>
+
+</div>
+</div>
+    <script type="text/template" id="data-template">
+
+        <div class="jumbotron text-left">
+<img src="https://s3-ap-southeast-1.amazonaws.com/summed-s3-bucket/{image}" style=" vertical-align: middle;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;">
+<h7>{user}</h7>
+<a href="/blog/{hee}">
+            <h3>{blogTitle}</h3>
+</a>
+            <p>{blogBody}</p>
+<button onclick="laga('{hee}', {k})" class="btn btn-info like">Like</button><span class="numlike">{likes}</span>
+        </div>
+        
+    </script>
+</body>
+<script src="/JS/axios.min.js"></script>
+<script src="/JS/dust-full.js"></script>
+
+<script>
+
+
+
+
+    var recent = document.getElementById("recent");
+    var liked = document.getElementById("liked");
+    var visited = document.getElementById("visited");
+
+
+    function laga(hee, k){
+        var like = document.getElementsByClassName('like')[k];
+        var numlike =  document.getElementsByClassName('numlike')[k].innerText;
+        console.log(numlike);
+        
+        var num = parseInt(numlike);
+        console.log("num befor is ", num);
+        if(like.style.color === 'blue'){
+            like.style.color = 'white';
+            num = num -1;
+        }else{
+            like.style.color = 'blue';
+            num = num + 1;
+        }
+        console.log("num after is ", num);
+        
+        document.getElementsByClassName('numlike')[k].innerHTML = num;
+        
+        axios({
+            method: 'post',
+            url: 'http://'+window.location.hostname+'/api/addlike/'+hee,
+
+        }).then(function (res) {
+            console.log("joined");
+
+            
+        }).catch(function(err){
+            console.log(err);
+        });
+    }
+    
+    
+function getRecent() {
+    axios({
+        method: 'get',
+        url: 'http://'+window.location.hostname+'/api/recent_feed'
+    }).then(function (res) {
+        console.log(res.data);
+        
+        for (var k = 0; k < res.data[1].length; k++) {
+           
+
+            options = {
+                 user : res.data[1][k][0].username,
+                 image: res.data[1][k][0].image,
+                blogTitle: res.data[1][k][1].title,
+                blogBody: res.data[1][k][1].body,
+                likes: res.data[1][k][1].likes.length,
+                k: k,
+                hee: res.data[1][k][1].id,
+                
+            };
+
+
+            var source = jQuery('#data-template').html();
+            var compiled = dust.compile(source, "intro");
+            dust.loadSource(compiled);
+
+            dust.render("intro", options, function (err, out) {
+                if (err) {
+                    console.log("error in dust is ", err);
+                }
+                jQuery('#post').append(out);
+
+                var like = document.getElementsByClassName('like')[k];
+                res.data[1][k][1].likes.forEach(function (v) {
+                    if(v == res.data[0].id){
+                        like.style.color = 'blue';
+
+
+                        return;
+                    }else{
+                        like.style.color = 'white';
+                    }
+
+                    document.getElementsByClassName('num')[k].value = num;
+                });
+            });
+        }
+    }).catch(function (err) {
+        console.log('error occured ', err);
+    });
+}
+
+
+    getRecent();
+
+    function getLiked() {
+        axios({
+            method: 'get',
+            url: 'http://'+window.location.hostname+'/api/liked_feed'
+        }).then(function (res) {
+            for (var k = 0; k < res.data[1].length; k++) {
+               
+                options = {
+
+                		 user : res.data[1][k][0].username,
+                         image: res.data[1][k][0].image,
+                        blogTitle: res.data[1][k][1].title,
+                        blogBody: res.data[1][k][1].body,
+                    likes: res.data[1][k][1].likes.length,
+                        k: k,
+                        hee: res.data[1][k][1].id,
+
+                };
+
+
+                var source = jQuery('#data-template').html();
+                var compiled = dust.compile(source, "intro");
+                dust.loadSource(compiled);
+
+                dust.render("intro", options, function (err, out) {
+                    if (err) {
+                        console.log("error in dust is ", err);
+                    }
+                    jQuery('#post').append(out);
+                    var like = document.getElementsByClassName('like')[k];
+                    res.data[1][k][1].likes.forEach(function (v) {
+                        if(v == res.data[0].id){
+                            like.style.color = 'blue';
+                            return;
+                        }else{
+                            like.style.color = 'white';
+
+                        }
+                    });
+                });
+            }
+        }).catch(function (err) {
+            console.log('error occured ', err);
+        });
+    }
+
+
+
+    
+     function getVisited() {
+        axios({
+           method: 'get',
+         url: 'http://'+window.location.hostname+'/api/visited_feed'
+       }).then(function (res) {
+          for (var k = 0; k < res.data[1].length; k++) {
+              
+                options = {
+    
+                		 user : res.data[1][k][0].username,
+                         image: res.data[1][k][0].image,
+                        blogTitle: res.data[1][k][1].title,
+                        blogBody: res.data[1][k][1].body,
+                        k: k,
+                        likes: res.data[1][k][1].likes.length,
+                        hee: res.data[1][k][1].id,
+   
+                };
+  
+    
+                var source = jQuery('#data-template').html();
+               var compiled = dust.compile(source, "intro");
+                dust.loadSource(compiled);
+    
+                dust.render("intro", options, function (err, out) {
+                    if (err) {
+                        console.log("error in dust is ", err);
+                    }
+                   jQuery('#post').append(out);
+                   var like = document.getElementsByClassName('like')[k];
+                   res.data[1][k][1].likes.forEach(function (v) {
+                       if(v == res.data[0].id){
+                           like.style.color = 'blue';
+                           return;
+                       }else{
+                           like.style.color = 'white';
+
+                       }
+                   });
+                });
+           }
+        }).catch(function (err) {
+             console.log('error occured ', err);
+        });
+    }
+
+
+
+    recent.addEventListener("click", function () {
+        jQuery('#post').html('');
+         getRecent();
+    });
+
+    liked.addEventListener("click", function () {
+        jQuery('#post').html('');
+        getLiked();
+    });
+
+     visited.addEventListener("click", function () {
+         jQuery('#post').html('');
+         getVisited();
+     });
+
+
+
+</script>
+<script></script>
+</html>
